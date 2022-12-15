@@ -1,13 +1,14 @@
-# keras imports for the dataset and building our neural network
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Conv2D, MaxPool2D, Flatten
 from keras.utils import np_utils
-# to calculate accuracy
 from sklearn.metrics import accuracy_score
 from keras.preprocessing.image import ImageDataGenerator
+from PIL import Image
 import keras.utils as image
 import numpy as np
+import matplotlib.pyplot as plt
+import PIL.ImageOps
 
 # loading the dataset
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -32,12 +33,15 @@ print("Shape after one-hot encoding: ", Y_train.shape)
 # building a linear stack of layers with the sequential model
 model = Sequential()
 # convolutional layer
-model.add(Conv2D(25, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu', input_shape=(28,28,1)))
-model.add(MaxPool2D(pool_size=(1,1)))
+model.add(Conv2D(64, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu', input_shape=(28,28,1)))
+model.add(MaxPool2D(pool_size=(2,2)))
+model.add(Conv2D(32, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
+model.add(MaxPool2D(pool_size=(2,2)))
 # flatten output of conv
 model.add(Flatten())
 # hidden layer
-model.add(Dense(100, activation='relu'))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(128, activation='relu'))
 # output layer
 model.add(Dense(10, activation='softmax'))
 
@@ -47,9 +51,10 @@ model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='
 # training the model for 10 epochs
 model.fit(X_train, Y_train, batch_size=128, epochs=10, validation_data=(X_test, Y_test))
 
-test_image = image.load_img('dataset/single_prediction/seven.png', target_size = (28, 28), color_mode = "grayscale", keep_aspect_ratio = True)
+test_image = image.load_img('dataset/single_prediction/zero.jpg', target_size = (28, 28), color_mode = "grayscale")
+test_image = PIL.ImageOps.invert(test_image)
+plt.imshow(test_image, cmap='Greys')
 test_image = image.img_to_array(test_image)
 test_image = np.expand_dims(test_image, axis = 0)
 result = model.predict(test_image)
-# training_set.class_indices
-print(result)
+print('Prediction: ', result.argmax())
